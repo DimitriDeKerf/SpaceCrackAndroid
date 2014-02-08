@@ -18,6 +18,11 @@ import com.facebook.widget.ProfilePictureView;
 
 public class HomeActivity extends FragmentActivity {
 
+    /*
+    Under construction!
+     */
+
+
     private HomeFragment homeFragment;
     private UiLifecycleHelper fbUiLifecycleHelper;
     private GraphUser user;

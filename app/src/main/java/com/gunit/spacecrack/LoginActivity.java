@@ -2,31 +2,20 @@ package com.gunit.spacecrack;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
-import com.facebook.UiLifecycleHelper;
 import com.facebook.model.GraphUser;
-
-import java.util.concurrent.CountDownLatch;
 
 public class LoginActivity extends FragmentActivity {
 
-    private FacebookLoginFragment facebookFragment;
+    private LoginFragment facebookFragment;
     private Context context;
     private SpaceCrackApplication application;
 
@@ -43,14 +32,14 @@ public class LoginActivity extends FragmentActivity {
 
         if (savedInstanceState == null) {
             // Add the fragment on initial activity setup
-            facebookFragment = new FacebookLoginFragment();
+            facebookFragment = new LoginFragment();
             getFragmentManager()
                     .beginTransaction()
                     .add(android.R.id.content, facebookFragment)
                     .commit();
         } else {
             // Or set the fragment from restored state info
-            facebookFragment = (FacebookLoginFragment) getFragmentManager()
+            facebookFragment = (LoginFragment) getFragmentManager()
                     .findFragmentById(android.R.id.content);
         }
 
@@ -78,6 +67,7 @@ public class LoginActivity extends FragmentActivity {
 
     }
 
+    //Handle the result from the Facebook Login Dialog
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

@@ -64,6 +64,7 @@ public class RegisterActivity extends Activity {
         return password.equals(confirmPassword);
     }
 
+    //POST request to register the user
     public class RegisterTask extends AsyncTask<String, Void, Boolean> {
 
         private JSONObject newUser;

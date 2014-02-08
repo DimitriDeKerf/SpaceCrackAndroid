@@ -13,6 +13,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.facebook.SessionLoginBehavior;
+import com.facebook.model.GraphUser;
+import com.facebook.widget.LoginButton;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -23,19 +27,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 /**
  * Created by Dimi on 6/02/14.
  */
-public class FacebookLoginFragment extends Fragment {
+public class LoginFragment extends Fragment {
 
     private EditText edtUsername;
     private EditText edtPassword;
     private Button login;
     private Button register;
+    private LoginButton facebook;
     private SharedPreferences sharedPreferences;
 
     private SpaceCrackApplication application;
+    private LoginActivity loginActivity;
 
     private static final String TAG = "LoginFragment";
     private final String URL = "http://10.0.2.2:8080/api/api/accesstokens";
@@ -44,6 +51,15 @@ public class FacebookLoginFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_login, container, false);
+
+        loginActivity = (LoginActivity) getActivity();
+        application = (SpaceCrackApplication) loginActivity.getApplication();
+
+        //Get the access token if available
+        sharedPreferences = getActivity().getSharedPreferences("Login", 0);
+        if (sharedPreferences != null && sharedPreferences.getString("accesToken", null) != null) {
+            application.setAccesToken(sharedPreferences.getString("accesToken", ""));
+        }
 
         //Find the views
         edtUsername = (EditText) view.findViewById(R.id.edt_login_username);
@@ -55,7 +71,7 @@ public class FacebookLoginFragment extends Fragment {
                 new LoginTask(edtUsername.getText().toString(), edtPassword.getText().toString()).execute(URL);
             }
         });
-        register = (Button) view.findViewById(R.id.loginRegister);
+        register = (Button) view.findViewById(R.id.btn_login_register);
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,18 +79,26 @@ public class FacebookLoginFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
-        application = (SpaceCrackApplication) getActivity().getApplication();
-        sharedPreferences = getActivity().getSharedPreferences("Login", 0);
-        if (sharedPreferences != null && sharedPreferences.getString("accesToken", null) != null) {
-            application.setAccesToken(sharedPreferences.getString("accesToken", ""));
-        }
+        facebook = (LoginButton) view.findViewById(R.id.btn_login_facebook);
+        //Set the permissions
+        facebook.setReadPermissions(Arrays.asList("email"));
+        facebook.setUserInfoChangedCallback(new LoginButton.UserInfoChangedCallback() {
+            @Override
+            public void onUserInfoFetched(GraphUser user) {
+                application.setGraphUser(user);
+                if (user != null) {
+                    Intent intent = new Intent(loginActivity, HomeActivity.class);
+                    startActivity(intent);
+//                    user.getProperty("email").toString();
+                }
+            }
+        });
 
         return view;
     }
 
 
-
+    //POST request to log the user in
     public class LoginTask extends AsyncTask<String, Void, String> {
 
         private JSONObject user;
@@ -82,6 +106,7 @@ public class FacebookLoginFragment extends Fragment {
         public LoginTask (String username, String password )
         {
             super();
+            //Create an user to log in
             user = new JSONObject();
             try {
                 user.put("username", username);
@@ -123,6 +148,7 @@ public class FacebookLoginFragment extends Fragment {
                 if (statusCode == 200) {
                     String responseBody = EntityUtils.toString(response.getEntity());
                     try {
+                        //Get the access token
                         JSONObject responseJson = new JSONObject(responseBody);
                         accessToken = responseJson.getString("value");
                     } catch (JSONException e) {
@@ -144,10 +170,9 @@ public class FacebookLoginFragment extends Fragment {
         {
             Toast.makeText(getActivity(), result != null ? getResources().getString(R.string.login_succes) : getResources().getString(R.string.login_fail), Toast.LENGTH_SHORT).show();
 
-            //Save the user's token
+            //Save the access token
             application.setAccesToken(result);
 
-            //Save the acces token
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("accessToken", result);
             editor.commit();
